@@ -375,44 +375,46 @@ class SQLModelMetaclass(ModelMetaclass, DeclarativeMeta):
 
 
 def get_sqlachemy_type(field: ModelField) -> Any:
-    if issubclass(field.type_, str):
+    field_type = field.type_ if isinstance(field.type_, type) else field.outer_type_
+
+    if issubclass(field_type, str):
         if field.field_info.max_length:
             return AutoString(length=field.field_info.max_length)
         return AutoString
-    if issubclass(field.type_, float):
+    if issubclass(field_type, float):
         return Float
-    if issubclass(field.type_, bool):
+    if issubclass(field_type, bool):
         return Boolean
-    if issubclass(field.type_, int):
+    if issubclass(field_type, int):
         return Integer
-    if issubclass(field.type_, datetime):
+    if issubclass(field_type, datetime):
         return DateTime
-    if issubclass(field.type_, date):
+    if issubclass(field_type, date):
         return Date
-    if issubclass(field.type_, timedelta):
+    if issubclass(field_type, timedelta):
         return Interval
-    if issubclass(field.type_, time):
+    if issubclass(field_type, time):
         return Time
-    if issubclass(field.type_, Enum):
+    if issubclass(field_type, Enum):
         return Enum
-    if issubclass(field.type_, bytes):
+    if issubclass(field_type, bytes):
         return LargeBinary
-    if issubclass(field.type_, Decimal):
+    if issubclass(field_type, Decimal):
         return Numeric(
-            precision=getattr(field.type_, "max_digits", None),
-            scale=getattr(field.type_, "decimal_places", None),
+            precision=getattr(field_type, "max_digits", None),
+            scale=getattr(field_type, "decimal_places", None),
         )
-    if issubclass(field.type_, ipaddress.IPv4Address):
+    if issubclass(field_type, ipaddress.IPv4Address):
         return AutoString
-    if issubclass(field.type_, ipaddress.IPv4Network):
+    if issubclass(field_type, ipaddress.IPv4Network):
         return AutoString
-    if issubclass(field.type_, ipaddress.IPv6Address):
+    if issubclass(field_type, ipaddress.IPv6Address):
         return AutoString
-    if issubclass(field.type_, ipaddress.IPv6Network):
+    if issubclass(field_type, ipaddress.IPv6Network):
         return AutoString
-    if issubclass(field.type_, Path):
+    if issubclass(field_type, Path):
         return AutoString
-    if issubclass(field.type_, uuid.UUID):
+    if issubclass(field_type, uuid.UUID):
         return GUID
 
 
