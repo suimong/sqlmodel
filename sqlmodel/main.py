@@ -30,6 +30,8 @@ from pydantic.fields import ModelField, Undefined, UndefinedType
 from pydantic.main import ModelMetaclass, validate_model
 from pydantic.typing import ForwardRef, NoArgAnyCallable, resolve_annotations
 from pydantic.utils import ROOT_KEY, Representation
+from pydantic.types import Json as PydanticJson
+
 from sqlalchemy import (
     Boolean,
     Column,
@@ -40,6 +42,7 @@ from sqlalchemy import (
     Integer,
     Interval,
     Numeric,
+    JSON,
     inspect,
 )
 from sqlalchemy.orm import RelationshipProperty, declared_attr, registry, relationship
@@ -375,7 +378,25 @@ class SQLModelMetaclass(ModelMetaclass, DeclarativeMeta):
 
 
 def get_sqlachemy_type(field: ModelField) -> Any:
-    field_type = field.type_ if isinstance(field.type_, type) else field.outer_type_
+    # The modification is to work around a Pydantic peculiarity:
+    # if a field is annotated with `pydantic.types.Json`, then pydantic
+    # will parse this field into a ModelField object `f` where:
+    # `(f.type_ is Any) is True`;
+    # `(f.required is False) is True`
+    # References to this peculiarity can be found at:
+    # pydantic.fields.py 569:571
+    # pydantic.fields.py 582:584
+    # To ensure that this field is required, one should explicitly declare it:
+    # ref: https://pydantic-docs.helpmanual.io/usage/models/#required-fields
+    # Class Model(SQLModel, table=True):
+    #     a: int  # OK
+    #     b: Json  # Not OK
+    #     b: Json = ...  # OK
+    #     c: int = Field(...)  # OK
+    if field.type_ is Any and field.outer_type_ is PydanticJson:
+        field_type = PydanticJson
+    else:
+        field_type = field.type_
 
     if issubclass(field_type, str):
         if field.field_info.max_length:
@@ -416,6 +437,8 @@ def get_sqlachemy_type(field: ModelField) -> Any:
         return AutoString
     if issubclass(field_type, uuid.UUID):
         return GUID
+    if issubclass(field_type, PydanticJson):
+        return JSON
 
 
 def get_column_from_field(field: ModelField) -> Column:  # type: ignore
