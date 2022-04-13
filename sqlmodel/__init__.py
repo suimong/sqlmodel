@@ -1,4 +1,4 @@
-__version__ = "0.0.6"
+__version__ = "0.0.6-benny-mod"
 
 # Re-export from SQLAlchemy
 from sqlalchemy.engine import create_mock_engine as create_mock_engine
