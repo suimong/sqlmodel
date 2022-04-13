@@ -55,7 +55,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Add packaged distribution
-          committer: Ben Yang
+          committer: Ben Yang <benny@no-reply.com>
           body: |
             New distribution built.
             - Contains *today's* date
