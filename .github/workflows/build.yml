@@ -12,7 +12,7 @@ on:
         default: false
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -46,7 +46,7 @@ jobs:
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: python -m poetry install
-      - name: Publish
+      - name: Build Distribution
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: python -m poetry build
